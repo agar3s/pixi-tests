@@ -9,41 +9,66 @@
       background-color: #000000;
     }
   </style>
-  <script src="js/pixi.dev.js"></script>
+  <script src='js/pixi.dev.js'></script>
+  <script src='js/keydrown.js'></script>
 </head>
 <body>
   <script>
     // create an new instance of a pixi stage
-    var stage = new PIXI.Stage(0x66FF99);
+    var stage = new PIXI.Stage(0x000000);
 
     // create a renderer instance.
-    var renderer = PIXI.autoDetectRenderer(400, 300);
+    var renderer = PIXI.autoDetectRenderer(800, 600);
 
     // add the renderer view element to the DOM
     document.body.appendChild(renderer.view);
     requestAnimFrame(animate);
 
     // create a texture from an image path
-    var texture = PIXI.Texture.fromImage("img/bunny.png");
+    var texture = PIXI.Texture.fromImage('img/bunny.png');
+    var shipTexture = PIXI.Texture.fromImage('img/F5S4.png');
 
     // create a new Sprite using the texture
     var bunny = new PIXI.Sprite(texture);
+    var ship = new PIXI.Sprite(shipTexture);
  
     // center the sprites anchor point
     bunny.anchor.x = 0.5;
     bunny.anchor.y = 0.5;
+    ship.anchor.x = 0.5;
+    ship.anchor.y = 0.5;
  
     // move the sprite t the center of the screen
     bunny.position.x = 200;
     bunny.position.y = 150;
  
+    ship.position.x = 100;
+    ship.position.y = 50;
+
+    ship.scale.x = 0.5;
+    ship.scale.y = 0.5;
+
+    kd.RIGHT.down(function(){
+      ship.rotation += 0.035;
+    });
+
+    kd.LEFT.down(function(){
+      ship.rotation -= 0.035;
+    });
+    kd.UP.down(function(){
+      ship.position.x += 2*Math.sin(ship.rotation);
+      ship.position.y -= 2*Math.cos(ship.rotation);
+    });
+
     stage.addChild(bunny);
+    stage.addChild(ship);
 
     function animate(){
+      requestAnimFrame(animate);
       // render the stage
+      kd.tick();
       bunny.rotation += 0.01;
       renderer.render(stage);
-      requestAnimFrame(animate);
     }
   </script>
 
