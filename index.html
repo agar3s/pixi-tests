@@ -6,19 +6,36 @@
     body {
       margin: 0;
       padding: 0;
-      background-color: #000000;
+      background-color: #ddd;
+    }
+    canvas {
+      display: block;
+      margin: 2em auto 0 25%;
+    }
+    #commands {
+      display: block;
+      width: 24%;
+      float: left;
+      padding: 2em;
     }
   </style>
   <script src='js/pixi.dev.js'></script>
   <script src='js/keydrown.js'></script>
 </head>
 <body>
+  <div id='commands'>
+    <button id='BU'>UP</button>
+    <button id='BL'>LEFT</button>
+    <button id='BD'>DOWN</button>
+    <button id='BR'>RIGHT</button>
+  </div>
+
   <script>
     // create an new instance of a pixi stage
-    var stage = new PIXI.Stage(0x000000);
+    var stage = new PIXI.Stage(0xFFFFFF);
 
     // create a renderer instance.
-    var renderer = PIXI.autoDetectRenderer(800, 600);
+    var renderer = PIXI.autoDetectRenderer(window.innerWidth*.70, window.innerHeight*.90);
 
     // add the renderer view element to the DOM
     document.body.appendChild(renderer.view);
@@ -26,49 +43,199 @@
 
     // create a texture from an image path
     var texture = PIXI.Texture.fromImage('img/bunny.png');
-    var shipTexture = PIXI.Texture.fromImage('img/F5S4.png');
+    var ashTexture = PIXI.Texture.fromImage('img/sprite.png');
 
     // create a new Sprite using the texture
     var bunny = new PIXI.Sprite(texture);
-    var ship = new PIXI.Sprite(shipTexture);
+    var ash = new PIXI.TilingSprite(ashTexture, 28, 30);
+
+    var frameRateText = new PIXI.Text('texto');
+
+    var cell = {
+      width: 50
+    };
+    var graphics = new PIXI.Graphics();
+    graphics.lineStyle(1, 0xFF33FF, 0.5);
+    for (var i = 0; i < renderer.width; i+=cell.width){
+      for (var j = 0; j < renderer.height; j+=cell.width){
+        graphics.drawRect(i, j, i+cell.width, j+cell.width);
+      }
+    }
  
     // center the sprites anchor point
     bunny.anchor.x = 0.5;
     bunny.anchor.y = 0.5;
-    ship.anchor.x = 0.5;
-    ship.anchor.y = 0.5;
  
     // move the sprite t the center of the screen
-    bunny.position.x = 200;
-    bunny.position.y = 150;
+    bunny.position.x = 225;
+    bunny.position.y = 175;
+
+    var bunnies = [];
+    bunnies.push(bunny);
+    function randomBunnies(number){
+      for (var i = 0; i < number; i++) {
+        var newBunny = new PIXI.Sprite(texture);
+        newBunny.anchor.x = 0.5;
+        newBunny.anchor.y = 0.5;
+        newBunny.position.x = Math.round(Math.random()*(renderer.width/cell.width))*cell.width+25;
+        newBunny.position.y = Math.round(Math.random()*(renderer.height/cell.width))*cell.width+25;
+        bunnies.push(newBunny);
+        stage.addChild(newBunny);
+      };
+    };
  
-    ship.position.x = 100;
-    ship.position.y = 50;
 
-    ship.scale.x = 0.5;
-    ship.scale.y = 0.5;
+    ash.anchor.x = 1;
+    ash.anchor.y = 1;
 
-    kd.RIGHT.down(function(){
-      ship.rotation += 0.035;
+    ash.position.x = 145;
+    ash.position.y = 130;
+
+    ash.scale.x = 2.3;
+    ash.scale.y = 2.3;
+
+    frameRateText.position.x = 20;
+    frameRateText.position.y = 20;
+
+    var actionKey = 'D';
+    kd.DOWN.down(function(){
+      programMove('D');
     });
-
+    kd.RIGHT.down(function(){
+      programMove('R');
+    });
     kd.LEFT.down(function(){
-      ship.rotation -= 0.035;
+      programMove('L');
     });
     kd.UP.down(function(){
-      ship.position.x += 2*Math.sin(ship.rotation);
-      ship.position.y -= 2*Math.cos(ship.rotation);
+      programMove('U');
     });
 
+    stage.addChild(graphics);
     stage.addChild(bunny);
-    stage.addChild(ship);
+    stage.addChild(ash);
+    stage.addChild(frameRateText);
 
-    function animate(){
-      requestAnimFrame(animate);
-      // render the stage
+    //propiedades del sprite
+    var tileCounter = 0;
+    var map = [0, 2, 1, 2];
+    var mapIndex = 0;
+
+    function updateAshSprite(timeLapse, freeze){
+      if(freeze){
+        mapIndex = 1;
+        ash.tilePosition.x = 56;
+        return; 
+      }
+      tileCounter += 28*timeLapse/3000;
+      if(tileCounter >= 1){
+        mapIndex++;
+        if(mapIndex >= map.length){
+         mapIndex = 0;
+        }
+        ash.tilePosition.x = 28*map[mapIndex];
+        tileCounter = 0;
+      }
+
+    }
+
+    var robot = {
+      action: '',
+      cycles: 0
+    }
+    //schedule a move
+    function programMove(actionMove){
+      if(robot.cycles<=0){
+        robot.action = actionMove;
+        robot.cycles = cell.width;
+      }
+    }
+
+    var spriteVelocityRender = 300;
+    function readInput(timeLapse){
       kd.tick();
-      bunny.rotation += 0.01;
+
+      var movRatio = spriteVelocityRender*timeLapse/1000
+      if(robot.cycles - movRatio <= 0){
+        movRatio = robot.cycles;
+        robot.cycles = 0;
+      }else{
+        robot.cycles -= movRatio;
+      }
+      actionKey = robot.action;
+      switch(actionKey){
+        case 'D':
+          ash.tilePosition.y = 0;
+          ash.position.y += movRatio;
+          updateAshSprite(timeLapse);
+        break;
+        case 'R':
+          ash.tilePosition.y = 90;
+          ash.position.x += movRatio;
+          updateAshSprite(timeLapse);
+        break;
+        case 'L':
+          ash.tilePosition.y = 60;
+          ash.position.x -= movRatio;
+          updateAshSprite(timeLapse);
+        break;
+        case 'U':
+          ash.tilePosition.y = 30;
+          ash.position.y -= movRatio;
+          updateAshSprite(timeLapse);
+        break;
+        default:
+          updateAshSprite(timeLapse, true)
+      }
+      if(robot.cycles <= 0){
+        robot.action = '';
+        
+      }
+      
+      actionKey = '';
+    }
+
+
+
+    document.getElementById('BU').onclick = function(){
+      programMove('U');
+    }
+    document.getElementById('BD').onclick = function(){
+      programMove('D');
+    }
+    document.getElementById('BL').onclick = function(){
+      programMove('L');
+    }
+    document.getElementById('BR').onclick = function(){
+      programMove('R');
+    }
+
+    var timeIni = Date.now();
+    var timeLapse = Date.now();
+    var points = 0;
+    function animate(){
+      timeLapse = Date.now() - timeIni;
+      requestAnimFrame(animate);
+      frameRateText.setText(points + ' pts');
+      readInput(timeLapse);
+      // render the stage
+      for (var i = bunnies.length - 1; i >= 0; i--) {
+        var myBunny = bunnies[i];
+        myBunny.rotation += 0.01;
+        if(ash.position.x+50 < myBunny.position.x + myBunny.width &&
+           ash.position.x+50 + ash.width > myBunny.position.x &&
+           ash.position.y+50 < myBunny.position.y + myBunny.height &&
+           ash.position.y+50 + ash.height > myBunny.position.y){
+          stage.removeChild(myBunny);
+          bunnies.splice(i, 1);
+          delete myBunny;
+          randomBunnies(2);
+          points+=50;
+          break;
+        }
+      };
       renderer.render(stage);
+      timeIni = Date.now();
     }
   </script>
 
