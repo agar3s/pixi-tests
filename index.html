@@ -48,6 +48,7 @@
     // create a new Sprite using the texture
     var bunny = new PIXI.Sprite(texture);
     var ash = new PIXI.TilingSprite(ashTexture, 28, 30);
+    var ash2 = new PIXI.TilingSprite(ashTexture, 28, 30);
 
     var frameRateText = new PIXI.Text('texto');
 
@@ -85,11 +86,11 @@
     };
  
 
-    ash.anchor.x = 1;
-    ash.anchor.y = 1;
+    ash.anchor.x = 0;
+    ash.anchor.y = 0;
 
-    ash.position.x = 145;
-    ash.position.y = 130;
+    ash.position.x = 44;
+    ash.position.y = 30;
 
     ash.scale.x = 2.3;
     ash.scale.y = 2.3;
@@ -115,25 +116,30 @@
     stage.addChild(bunny);
     stage.addChild(ash);
     stage.addChild(frameRateText);
+    stage.addChild(ash2);
 
     //propiedades del sprite
     var tileCounter = 0;
     var map = [0, 2, 1, 2];
     var mapIndex = 0;
+    
+    //I think must be a better option ¬¬
+    var tw = renderer.type==0?128/3:28;
+    var th = renderer.type==0?128/4:30;
 
     function updateAshSprite(timeLapse, freeze){
       if(freeze){
         mapIndex = 1;
-        ash.tilePosition.x = 56;
+        ash.tilePosition.x = tw*2;
         return; 
       }
-      tileCounter += 28*timeLapse/3000;
+      tileCounter += tw*timeLapse/3000;
       if(tileCounter >= 1){
         mapIndex++;
         if(mapIndex >= map.length){
          mapIndex = 0;
         }
-        ash.tilePosition.x = 28*map[mapIndex];
+        ash.tilePosition.x = tw*map[mapIndex];
         tileCounter = 0;
       }
 
@@ -165,22 +171,22 @@
       actionKey = robot.action;
       switch(actionKey){
         case 'D':
-          ash.tilePosition.y = 0;
+          ash.tilePosition.y = th*0;
           ash.position.y += movRatio;
           updateAshSprite(timeLapse);
         break;
         case 'R':
-          ash.tilePosition.y = 90;
+          ash.tilePosition.y = th*3;
           ash.position.x += movRatio;
           updateAshSprite(timeLapse);
         break;
         case 'L':
-          ash.tilePosition.y = 60;
+          ash.tilePosition.y = th*2;
           ash.position.x -= movRatio;
           updateAshSprite(timeLapse);
         break;
         case 'U':
-          ash.tilePosition.y = 30;
+          ash.tilePosition.y = th*1;
           ash.position.y -= movRatio;
           updateAshSprite(timeLapse);
         break;
