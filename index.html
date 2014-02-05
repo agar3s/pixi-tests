@@ -46,7 +46,6 @@
     var ashTexture = PIXI.Texture.fromImage('img/sprite.png');
 
     // create a new Sprite using the texture
-    var bunny = new PIXI.Sprite(texture);
     var ash = new PIXI.TilingSprite(ashTexture, 28, 30);
     var ash2 = new PIXI.TilingSprite(ashTexture, 28, 30);
 
@@ -62,17 +61,8 @@
         graphics.drawRect(i, j, i+cell.width, j+cell.width);
       }
     }
- 
-    // center the sprites anchor point
-    bunny.anchor.x = 0.5;
-    bunny.anchor.y = 0.5;
- 
-    // move the sprite t the center of the screen
-    bunny.position.x = 225;
-    bunny.position.y = 175;
 
     var bunnies = [];
-    bunnies.push(bunny);
     function randomBunnies(number){
       for (var i = 0; i < number; i++) {
         var newBunny = new PIXI.Sprite(texture);
@@ -81,7 +71,7 @@
         newBunny.position.x = Math.round(Math.random()*(renderer.width/cell.width))*cell.width+25;
         newBunny.position.y = Math.round(Math.random()*(renderer.height/cell.width))*cell.width+25;
         bunnies.push(newBunny);
-        stage.addChild(newBunny);
+        stage.addChildAt(newBunny, 0);
       };
     };
  
@@ -113,7 +103,6 @@
     });
 
     stage.addChild(graphics);
-    stage.addChild(bunny);
     stage.addChild(ash);
     stage.addChild(frameRateText);
     stage.addChild(ash2);
@@ -219,9 +208,9 @@
     var timeIni = Date.now();
     var timeLapse = Date.now();
     var points = 0;
+    randomBunnies(1);
     function animate(){
       timeLapse = Date.now() - timeIni;
-      requestAnimFrame(animate);
       frameRateText.setText(points + ' pts');
       readInput(timeLapse);
       // render the stage
@@ -242,6 +231,7 @@
       };
       renderer.render(stage);
       timeIni = Date.now();
+      requestAnimFrame(animate);
     }
   </script>
 
